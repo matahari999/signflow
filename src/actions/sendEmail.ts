@@ -2,13 +2,15 @@
 
 import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+function getResend() {
+  return new Resend(process.env.RESEND_API_KEY)
+}
 
 export async function sendContractEmail(clientEmail: string, contractId: string, templateName: string) {
   const signingUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/sign/${contractId}`
 
   try {
-    await resend.emails.send({
+    await getResend().emails.send({
       from: 'SignFlow <onboarding@resend.dev>',
       to: clientEmail,
       subject: `Please sign your contract — ${templateName}`,
