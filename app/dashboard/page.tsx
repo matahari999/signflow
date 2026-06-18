@@ -7,12 +7,23 @@ import UpgradeButton from '@/components/UpgradeButton'
 export const dynamic = 'force-dynamic'
 
 export default async function DashboardPage() {
-  const supabase = await createSupabaseServerClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  let user = null
+  try {
+    const supabase = await createSupabaseServerClient()
+    const { data } = await supabase.auth.getUser()
+    user = data.user
+  } catch {
+    redirect('/login')
+  }
 
   if (!user) redirect('/login')
 
-  const contracts = await getContracts(user.id)
+  let contracts: Awaited<ReturnType<typeof getContracts>> = []
+  try {
+    contracts = await getContracts(user.id)
+  } catch {
+    contracts = []
+  }
 
   const total = contracts.length
   const drafts = contracts.filter((c) => c.status === 'draft').length

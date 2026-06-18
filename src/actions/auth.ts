@@ -13,17 +13,27 @@ export async function signUp(prevState: AuthState, formData: FormData): Promise<
   if (!email || !password) return { error: 'Email and password are required.' }
   if (password.length < 6) return { error: 'Password must be at least 6 characters.' }
 
-  const supabase = await createSupabaseServerClient()
+  let supabase
+  try {
+    supabase = await createSupabaseServerClient()
+  } catch {
+    return { error: 'Service unavailable. Check server configuration.' }
+  }
+
   const { data, error } = await supabase.auth.signUp({ email, password })
 
   if (error) return { error: error.message }
 
   if (data.user) {
-    await supabaseAdmin.from('profiles').upsert({
-      id: data.user.id,
-      email: data.user.email,
-      subscription_status: 'free',
-    })
+    try {
+      await supabaseAdmin.from('profiles').upsert({
+        id: data.user.id,
+        email: data.user.email,
+        subscription_status: 'free',
+      })
+    } catch {
+      // Profile creation failed — non-fatal, user can still proceed
+    }
   }
 
   redirect('/dashboard')
@@ -35,7 +45,13 @@ export async function signIn(prevState: AuthState, formData: FormData): Promise<
 
   if (!email || !password) return { error: 'Email and password are required.' }
 
-  const supabase = await createSupabaseServerClient()
+  let supabase
+  try {
+    supabase = await createSupabaseServerClient()
+  } catch {
+    return { error: 'Service unavailable. Check server configuration.' }
+  }
+
   const { error } = await supabase.auth.signInWithPassword({ email, password })
 
   if (error) return { error: error.message }
@@ -44,7 +60,11 @@ export async function signIn(prevState: AuthState, formData: FormData): Promise<
 }
 
 export async function signOut() {
-  const supabase = await createSupabaseServerClient()
-  await supabase.auth.signOut()
+  try {
+    const supabase = await createSupabaseServerClient()
+    await supabase.auth.signOut()
+  } catch {
+    // ignore
+  }
   redirect('/login')
 }
