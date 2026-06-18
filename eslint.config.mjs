@@ -12,6 +12,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Node.js utility scripts (not part of the app)
+    "insert_templates.js",
+    "test_db.js",
+    "test_db.ts",
   ]),
 ]);
 
