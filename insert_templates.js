@@ -119,11 +119,11 @@ const templates = [
 ];
 
 async function insertTemplates() {
-  console.log('Clearing existing templates...');
-  await supabase.from('templates').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-
-  console.log('Inserting 13 templates...');
-  const { data, error } = await supabase.from('templates').insert(templates);
+  console.log('Upserting 13 templates (safe — existing contracts preserved)...');
+  const { data, error } = await supabase.from('templates').upsert(
+    templates.map(t => ({ ...t, id: undefined })),
+    { onConflict: 'name', ignoreDuplicates: false }
+  );
 
   if (error) {
     console.error('Insert Failed:', error.message);
