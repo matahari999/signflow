@@ -6,8 +6,18 @@ function getResend() {
   return new Resend(process.env.RESEND_API_KEY)
 }
 
+function getSiteUrl() {
+  // Vercel production
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`
+  // Custom env var (must be production URL)
+  if (process.env.NEXT_PUBLIC_SITE_URL && !process.env.NEXT_PUBLIC_SITE_URL.includes('localhost')) {
+    return process.env.NEXT_PUBLIC_SITE_URL
+  }
+  return 'https://signflow-iota.vercel.app'
+}
+
 export async function sendContractEmail(clientEmail: string, contractId: string, templateName: string) {
-  const signingUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/sign/${contractId}`
+  const signingUrl = `${getSiteUrl()}/sign/${contractId}`
 
   try {
     await getResend().emails.send({

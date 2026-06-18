@@ -2,6 +2,7 @@
 
 import { useActionState } from 'react'
 import Link from 'next/link'
+import GoogleSignInButton from './GoogleSignInButton'
 
 type AuthState = { error?: string } | undefined
 type AuthAction = (prevState: AuthState, formData: FormData) => Promise<AuthState>
@@ -15,6 +16,15 @@ export default function AuthForm({ action, type }: Props) {
   const [state, formAction, pending] = useActionState(action, undefined)
 
   return (
+    <div className="space-y-5">
+      <GoogleSignInButton />
+
+      <div className="flex items-center gap-3">
+        <div className="flex-1 h-px bg-gray-200" />
+        <span className="text-xs text-gray-400">또는 이메일로 계속</span>
+        <div className="flex-1 h-px bg-gray-200" />
+      </div>
+
     <form action={formAction} className="space-y-5">
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
@@ -57,19 +67,4 @@ export default function AuthForm({ action, type }: Props) {
         {type === 'login' ? (
           <>
             Don&apos;t have an account?{' '}
-            <Link href="/signup" className="text-blue-600 hover:underline font-medium">
-              Sign up
-            </Link>
-          </>
-        ) : (
-          <>
-            Already have an account?{' '}
-            <Link href="/login" className="text-blue-600 hover:underline font-medium">
-              Sign in
-            </Link>
-          </>
-        )}
-      </p>
-    </form>
-  )
-}
+            <Link href="/signup"
