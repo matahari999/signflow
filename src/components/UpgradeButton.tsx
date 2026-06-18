@@ -1,8 +1,12 @@
 'use client';
 
-export default function UpgradeButton() {
+export default function UpgradeButton({ email }: { email?: string }) {
   const handleUpgrade = async () => {
-    const res = await fetch('/api/checkout', { method: 'POST' });
+    const res = await fetch('/api/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
     const data = await res.json();
     window.location.href = data.url;
   };

@@ -2,10 +2,13 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { getContracts } from '@/actions/getContracts'
 import { createSupabaseServerClient } from '@/lib/supabaseServer'
+import { supabaseAdmin } from '@/lib/supabaseAdmin'
 import UpgradeButton from '@/components/UpgradeButton'
 import ContractActions from '@/components/ContractActions'
 
 export const dynamic = 'force-dynamic'
+
+const FREE_TIER_LIMIT = 3
 
 export default async function DashboardPage() {
   let user = null
@@ -26,6 +29,14 @@ export default async function DashboardPage() {
     contracts = []
   }
 
+  const { data: profile } = await supabaseAdmin
+    .from('profiles')
+    .select('subscription_status')
+    .eq('id', user.id)
+    .single()
+
+  const isPro = profile?.subscription_status === 'paid'
+
   const total = contracts.length
   const drafts = contracts.filter((c) => c.status === 'draft').length
   const sent = contracts.filter((c) => c.status === 'sent').length
@@ -36,7 +47,12 @@ export default async function DashboardPage() {
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-2xl font-bold">Dashboard</h1>
-          <p className="text-sm text-gray-500 mt-0.5">{user.email}</p>
+          <p className="text-sm text-gray-500 mt-0.5">
+            {user.email}
+            {isPro ? (
+              <span className="ml-2 bg-yellow-400 text-black text-xs font-bold px-2 py-0.5 rounded">PRO</span>
+            ) : null}
+          </p>
         </div>
         <div className="flex gap-3">
           <Link
@@ -45,9 +61,22 @@ export default async function DashboardPage() {
           >
             + New Contract
           </Link>
-          <UpgradeButton />
+          {!isPro && <UpgradeButton email={user.email} />}
         </div>
       </div>
+
+      {/* Upgrade prompt when near limit */}
+      {!isPro && total >= FREE_TIER_LIMIT && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6 flex items-center justify-between">
+          <p className="text-sm text-yellow-800">
+            You&apos;ve used {total}/{FREE_TIER_LIMIT} free contracts.
+            <Link href="/pricing" className="font-semibold underline ml-1">Upgrade to Pro</Link> for unlimited contracts and premium templates.
+          </p>
+          <Link href="/pricing" className="bg-yellow-500 text-black px-4 py-1.5 rounded-lg text-sm font-bold hover:bg-yellow-400 transition whitespace-nowrap ml-4">
+            Upgrade
+          </Link>
+        </div>
+      )}
 
       <div className="grid grid-cols-4 gap-4 mb-8">
         <div className="bg-white rounded-xl border p-5">
@@ -89,18 +118,10 @@ export default async function DashboardPage() {
           <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
-                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">
-                  Client Email
-                </th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">
-                  Status
-                </th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">
-                  Created
-                </th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">
-                  Actions
-                </th>
+                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Client Email</th>
+                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Status</th>
+                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Created</th>
+                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -108,33 +129,16 @@ export default async function DashboardPage() {
                 <tr key={contract.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 text-sm">{contract.client_email || '—'}</td>
                   <td className="px-6 py-4">
-                    <span
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        contract.status === 'signed'
-                          ? 'bg-green-100 text-green-700'
-                          : contract.status === 'sent'
-                          ? 'bg-blue-100 text-blue-700'
-                          : 'bg-yellow-100 text-yellow-700'
-                      }`}
-                    >
-                      {contract.status}
-                    </span>
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      contract.status === 'signed' ? 'bg-green-100 text-green-700' : contract.status === 'sent' ? 'bg-blue-100 text-blue-700' : 'bg-yellow-100 text-yellow-700'
+                    }`}>{contract.status}</span>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-500">
-                    {new Date(contract.created_at).toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      year: 'numeric',
-                    })}
+                    {new Date(contract.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <Link
-                        href={`/sign/${contract.id}`}
-                        className="text-sm text-blue-600 hover:underline"
-                      >
-                        View / Sign
-                      </Link>
+                      <Link href={`/sign/${contract.id}`} className="text-sm text-blue-600 hover:underline">View / Sign</Link>
                       <ContractActions contractId={contract.id} status={contract.status} />
                     </div>
                   </td>

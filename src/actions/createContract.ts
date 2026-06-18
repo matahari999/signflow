@@ -4,6 +4,8 @@ import { supabaseAdmin } from '../lib/supabaseAdmin'
 import { createSupabaseServerClient } from '../lib/supabaseServer'
 import { sendContractEmail } from './sendEmail'
 
+const FREE_TIER_LIMIT = 3
+
 export async function createContract(
   templateId: string,
   clientEmail: string,
@@ -14,6 +16,31 @@ export async function createContract(
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) return { success: false, error: 'Not authenticated', contractId: null, emailSent: false }
+
+  // Check user plan
+  const { data: profile } = await supabaseAdmin
+    .from('profiles')
+    .select('subscription_status')
+    .eq('id', user.id)
+    .single()
+
+  const isPro = profile?.subscription_status === 'paid'
+
+  if (!isPro) {
+    const { count } = await supabaseAdmin
+      .from('contracts')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+
+    if (count != null && count >= FREE_TIER_LIMIT) {
+      return {
+        success: false,
+        error: `Free plan limited to ${FREE_TIER_LIMIT} contracts. Upgrade to Pro for unlimited contracts.`,
+        contractId: null,
+        emailSent: false,
+      }
+    }
+  }
 
   const { data, error } = await supabaseAdmin
     .from('contracts')
