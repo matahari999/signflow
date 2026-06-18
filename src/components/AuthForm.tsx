@@ -21,7 +21,7 @@ export default function AuthForm({ action, type }: Props) {
 
       <div className="flex items-center gap-3">
         <div className="flex-1 h-px bg-gray-200" />
-        <span className="text-xs text-gray-400">또는 이메일로 계속</span>
+        <span className="text-xs text-gray-400">or continue with email</span>
         <div className="flex-1 h-px bg-gray-200" />
       </div>
 
@@ -67,4 +67,20 @@ export default function AuthForm({ action, type }: Props) {
         {type === 'login' ? (
           <>
             Don&apos;t have an account?{' '}
-            <Link href="/signup"
+            <Link href="/signup" className="text-blue-600 hover:underline font-medium">
+              Sign up
+            </Link>
+          </>
+        ) : (
+          <>
+            Already have an account?{' '}
+            <Link href="/login" className="text-blue-600 hover:underline font-medium">
+              Sign in
+            </Link>
+          </>
+        )}
+      </p>
+    </form>
+    </div>
+  )
+}

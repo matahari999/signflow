@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { getContracts } from '@/actions/getContracts'
 import { createSupabaseServerClient } from '@/lib/supabaseServer'
 import UpgradeButton from '@/components/UpgradeButton'
+import ContractActions from '@/components/ContractActions'
 
 export const dynamic = 'force-dynamic'
 
@@ -68,8 +69,11 @@ export default async function DashboardPage() {
       </div>
 
       <div className="bg-white rounded-xl border">
-        <div className="px-6 py-4 border-b">
+        <div className="px-6 py-4 border-b flex items-center justify-between">
           <h2 className="font-semibold">Recent Contracts</h2>
+          {contracts.length > 0 && (
+            <span className="text-xs text-gray-400">{contracts.length} total</span>
+          )}
         </div>
         {contracts.length === 0 ? (
           <div className="p-12 text-center text-gray-500">
@@ -124,12 +128,15 @@ export default async function DashboardPage() {
                     })}
                   </td>
                   <td className="px-6 py-4">
-                    <Link
-                      href={`/sign/${contract.id}`}
-                      className="text-sm text-blue-600 hover:underline"
-                    >
-                      View / Sign
-                    </Link>
+                    <div className="flex items-center gap-3">
+                      <Link
+                        href={`/sign/${contract.id}`}
+                        className="text-sm text-blue-600 hover:underline"
+                      >
+                        View / Sign
+                      </Link>
+                      <ContractActions contractId={contract.id} status={contract.status} />
+                    </div>
                   </td>
                 </tr>
               ))}

@@ -35,3 +35,49 @@ create table if not exists signatures (
   signature_data text, -- Base64/SVG path
   signed_at timestamp with time zone default timezone('utc'::text, now())
 );
+
+-- Row Level Security
+alter table profiles enable row level security;
+alter table contracts enable row level security;
+alter table signatures enable row level security;
+
+-- Profiles: users can read/update their own profile
+create policy "Users can read own profile"
+  on profiles for select
+  using (auth.uid() = id);
+
+create policy "Users can update own profile"
+  on profiles for update
+  using (auth.uid() = id);
+
+-- Contracts: users can CRUD their own contracts
+create policy "Users can insert own contracts"
+  on contracts for insert
+  with check (auth.uid() = user_id);
+
+create policy "Users can read own contracts"
+  on contracts for select
+  using (auth.uid() = user_id);
+
+create policy "Users can update own contracts"
+  on contracts for update
+  using (auth.uid() = user_id);
+
+create policy "Users can delete own contracts"
+  on contracts for delete
+  using (auth.uid() = user_id);
+
+-- Signatures: contractors can read signatures on their contracts
+create policy "Users can read signatures on own contracts"
+  on signatures for select
+  using (
+    exists (
+      select 1 from contracts
+      where contracts.id = signatures.contract_id
+      and contracts.user_id = auth.uid()
+    )
+  );
+
+create policy "Signers can insert signatures"
+  on signatures for insert
+  with check (true); -- Allow signers (who may not be logged in via client link) to sign

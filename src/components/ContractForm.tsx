@@ -33,15 +33,15 @@ export default function ContractForm({ fields, templateId, templateName }: Props
     if (result.success && result.contractId) {
       setContractId(result.contractId)
       setEmailSent(result.emailSent)
+
+      const base64 = await generatePDF(fieldsData, templateName)
+      const link = document.createElement('a')
+      link.href = `data:application/pdf;base64,${base64}`
+      link.download = `${templateName.replace(/\s+/g, '-').toLowerCase()}.pdf`
+      link.click()
     } else {
       setError(result.error ?? 'Failed to save contract.')
     }
-
-    const base64 = await generatePDF(formData)
-    const link = document.createElement('a')
-    link.href = `data:application/pdf;base64,${base64}`
-    link.download = `${templateName.replace(/\s+/g, '-').toLowerCase()}.pdf`
-    link.click()
 
     setLoading(false)
   }
