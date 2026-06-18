@@ -3,8 +3,14 @@ import { createSupabaseServerClient } from '@/lib/supabaseServer'
 import UpgradeButton from '@/components/UpgradeButton'
 
 export default async function HomePage() {
-  const supabase = await createSupabaseServerClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  let user = null
+  try {
+    const supabase = await createSupabaseServerClient()
+    const { data } = await supabase.auth.getUser()
+    user = data.user
+  } catch {
+    // Supabase not configured — show logged-out state
+  }
 
   return (
     <div className="min-h-screen bg-white">
