@@ -1,10 +1,13 @@
 'use client';
-import { generateContractPdf } from '@/lib/pdf-generator';
+import { generatePDF } from '@/actions/generatePDF';
 
 export default function PdfPreview({ data, templateName }: { data: Record<string, string>, templateName: string }) {
   const handleDownload = async () => {
-    const pdfBytes = await generateContractPdf(data, templateName);
-    const blob = new Blob([pdfBytes as unknown as ArrayBuffer], { type: 'application/pdf' });
+    const base64 = await generatePDF(data, templateName);
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    const blob = new Blob([bytes], { type: 'application/pdf' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
