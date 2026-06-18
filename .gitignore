@@ -47,3 +47,5 @@ log/
 .omc/
 test_db.js
 test_db.ts
+
+.vercel
