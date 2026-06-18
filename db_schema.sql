@@ -1,7 +1,7 @@
 -- Supabase DB Schema for SignFlow MVP
 
 -- 1. Profiles (linked to auth.users)
-create table profiles (
+create table if not exists profiles (
   id uuid references auth.users on delete cascade primary key,
   email text unique,
   subscription_status text default 'free', -- 'free' or 'paid'
@@ -9,7 +9,7 @@ create table profiles (
 );
 
 -- 2. Templates
-create table templates (
+create table if not exists templates (
   id uuid default gen_random_uuid() primary key,
   name text not null,
   content text not null, -- JSON schema for form fields
@@ -17,7 +17,7 @@ create table templates (
 );
 
 -- 3. Contracts
-create table contracts (
+create table if not exists contracts (
   id uuid default gen_random_uuid() primary key,
   user_id uuid references profiles(id) on delete cascade,
   template_id uuid references templates(id),
@@ -29,7 +29,7 @@ create table contracts (
 );
 
 -- 4. Signatures (for audit trail)
-create table signatures (
+create table if not exists signatures (
   id uuid default gen_random_uuid() primary key,
   contract_id uuid references contracts(id) on delete cascade,
   signature_data text, -- Base64/SVG path
