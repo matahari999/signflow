@@ -2,8 +2,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import ContractForm from '@/components/ContractForm'
 import { getTemplateById } from '@/actions/getTemplateById'
-import { createSupabaseServerClient } from '@/lib/supabaseServer'
-import { supabaseAdmin } from '@/lib/supabaseAdmin'
+import { createClient, createAdminClient } from '@/utils/supabase/server'
 
 export default async function CustomizePage({
   params,
@@ -22,20 +21,19 @@ export default async function CustomizePage({
   }
 
   const content = typeof template.content === 'string' ? JSON.parse(template.content) : template.content
-  const fields: string[] = content.fields
   const isPro = content.pro === true
 
   // Check user plan for pro templates
   if (isPro) {
     let user = null
     try {
-      const supabase = await createSupabaseServerClient()
+      const supabase = await createClient()
       const { data } = await supabase.auth.getUser()
       user = data.user
     } catch {}
 
     if (user) {
-      const { data: profile } = await supabaseAdmin
+      const { data: profile } = await createAdminClient()
         .from('profiles')
         .select('subscription_status')
         .eq('id', user.id)
@@ -67,11 +65,7 @@ export default async function CustomizePage({
           </div>
           <p className="text-gray-600 mt-1 text-sm">{template.description}</p>
         </div>
-        <ContractForm
-          fields={fields}
-          templateId={template.id}
-          templateName={template.name}
-        />
+        <ContractForm template={template} />
       </div>
     </div>
   )

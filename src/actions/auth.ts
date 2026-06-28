@@ -1,8 +1,7 @@
 'use server'
 
 import { redirect } from 'next/navigation'
-import { createSupabaseServerClient } from '../lib/supabaseServer'
-import { supabaseAdmin } from '../lib/supabaseAdmin'
+import { createClient, createAdminClient } from '@/utils/supabase/server'
 
 type AuthState = { error?: string } | undefined
 
@@ -13,20 +12,14 @@ export async function signUp(prevState: AuthState, formData: FormData): Promise<
   if (!email || !password) return { error: 'Email and password are required.' }
   if (password.length < 6) return { error: 'Password must be at least 6 characters.' }
 
-  let supabase
-  try {
-    supabase = await createSupabaseServerClient()
-  } catch {
-    return { error: 'Service unavailable. Check server configuration.' }
-  }
-
+  const supabase = await createClient()
   const { data, error } = await supabase.auth.signUp({ email, password })
 
   if (error) return { error: error.message }
 
   if (data.user) {
     try {
-      await supabaseAdmin.from('profiles').upsert({
+      await createAdminClient().from('profiles').upsert({
         id: data.user.id,
         email: data.user.email,
         subscription_status: 'free',
@@ -45,13 +38,7 @@ export async function signIn(prevState: AuthState, formData: FormData): Promise<
 
   if (!email || !password) return { error: 'Email and password are required.' }
 
-  let supabase
-  try {
-    supabase = await createSupabaseServerClient()
-  } catch {
-    return { error: 'Service unavailable. Check server configuration.' }
-  }
-
+  const supabase = await createClient()
   const { error } = await supabase.auth.signInWithPassword({ email, password })
 
   if (error) return { error: error.message }
@@ -61,7 +48,7 @@ export async function signIn(prevState: AuthState, formData: FormData): Promise<
 
 export async function signOut() {
   try {
-    const supabase = await createSupabaseServerClient()
+    const supabase = await createClient()
     await supabase.auth.signOut()
   } catch {
     // ignore

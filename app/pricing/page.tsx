@@ -1,10 +1,10 @@
 import Link from 'next/link'
-import { createSupabaseServerClient } from '@/lib/supabaseServer'
+import { createClient } from '@/utils/supabase/server'
 
 export default async function PricingPage() {
   let user = null
   try {
-    const supabase = await createSupabaseServerClient()
+    const supabase = await createClient()
     const { data } = await supabase.auth.getUser()
     user = data.user
   } catch {}

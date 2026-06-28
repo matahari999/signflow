@@ -1,8 +1,7 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { getContracts } from '@/actions/getContracts'
-import { createSupabaseServerClient } from '@/lib/supabaseServer'
-import { supabaseAdmin } from '@/lib/supabaseAdmin'
+import { createClient, createAdminClient } from '@/utils/supabase/server'
 import UpgradeButton from '@/components/UpgradeButton'
 import ContractActions from '@/components/ContractActions'
 
@@ -13,7 +12,7 @@ const FREE_TIER_LIMIT = 3
 export default async function DashboardPage() {
   let user = null
   try {
-    const supabase = await createSupabaseServerClient()
+    const supabase = await createClient()
     const { data } = await supabase.auth.getUser()
     user = data.user
   } catch {
@@ -29,7 +28,7 @@ export default async function DashboardPage() {
     contracts = []
   }
 
-  const { data: profile } = await supabaseAdmin
+  const { data: profile } = await createAdminClient()
     .from('profiles')
     .select('subscription_status')
     .eq('id', user.id)

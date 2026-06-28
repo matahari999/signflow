@@ -16,6 +16,15 @@ create table if not exists templates (
   description text
 );
 
+-- Templates: public read-only (no auth required to browse), write blocked
+alter table templates enable row level security;
+
+create policy "Anyone can read templates"
+  on templates for select
+  using (true);
+
+-- Insert/Update/Delete via service role only (no user-facing policy)
+
 -- 3. Contracts
 create table if not exists contracts (
   id uuid default gen_random_uuid() primary key,

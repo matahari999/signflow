@@ -1,9 +1,9 @@
 'use server'
 
-import { supabaseAdmin } from '../lib/supabaseAdmin'
+import { createAdminClient } from '@/utils/supabase/server'
 
 export async function getTemplateById(id: string) {
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await createAdminClient()
     .from('templates')
     .select('*')
     .eq('id', id)

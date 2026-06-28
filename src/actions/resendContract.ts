@@ -1,10 +1,10 @@
 'use server'
 
-import { supabaseAdmin } from '../lib/supabaseAdmin'
+import { createAdminClient } from '@/utils/supabase/server'
 import { sendContractEmail } from './sendEmail'
 
 export async function resendContract(contractId: string) {
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await createAdminClient()
     .from('contracts')
     .select('client_email, templates(name)')
     .eq('id', contractId)
@@ -16,7 +16,7 @@ export async function resendContract(contractId: string) {
   const emailResult = await sendContractEmail(data.client_email, contractId, templateName)
 
   if (emailResult.success) {
-    await supabaseAdmin
+    await createAdminClient()
       .from('contracts')
       .update({ status: 'sent' })
       .eq('id', contractId)

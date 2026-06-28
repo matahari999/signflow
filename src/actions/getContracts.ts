@@ -1,9 +1,9 @@
 'use server'
 
-import { supabaseAdmin } from '../lib/supabaseAdmin'
+import { createAdminClient } from '@/utils/supabase/server'
 
 export async function getContracts(userId: string) {
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await createAdminClient()
     .from('contracts')
     .select('*')
     .eq('user_id', userId)

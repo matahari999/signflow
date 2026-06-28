@@ -21,7 +21,7 @@ export async function sendContractEmail(clientEmail: string, contractId: string,
 
   try {
     await getResend().emails.send({
-      from: 'SignFlow <onboarding@resend.dev>',
+      from: process.env.RESEND_FROM || 'SignFlow <onboarding@resend.dev>',
       to: clientEmail,
       subject: `Please sign your contract — ${templateName}`,
       html: `

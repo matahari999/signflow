@@ -1,7 +1,6 @@
 'use server'
 
-import { supabaseAdmin } from '../lib/supabaseAdmin'
-import { createSupabaseServerClient } from '../lib/supabaseServer'
+import { createClient, createAdminClient } from '@/utils/supabase/server'
 import { sendContractEmail } from './sendEmail'
 
 const FREE_TIER_LIMIT = 3
@@ -12,13 +11,14 @@ export async function createContract(
   fields: Record<string, string>,
   templateName: string = 'Contract'
 ) {
-  const supabase = await createSupabaseServerClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) return { success: false, error: 'Not authenticated', contractId: null, emailSent: false }
 
-  // Check user plan
-  const { data: profile } = await supabaseAdmin
+  const admin = createAdminClient()
+
+  const { data: profile } = await admin
     .from('profiles')
     .select('subscription_status')
     .eq('id', user.id)
@@ -27,7 +27,7 @@ export async function createContract(
   const isPro = profile?.subscription_status === 'paid'
 
   if (!isPro) {
-    const { count } = await supabaseAdmin
+    const { count } = await admin
       .from('contracts')
       .select('*', { count: 'exact', head: true })
       .eq('user_id', user.id)
@@ -42,7 +42,7 @@ export async function createContract(
     }
   }
 
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await admin
     .from('contracts')
     .insert([{
       user_id: user.id,
@@ -61,12 +61,10 @@ export async function createContract(
 
   const contractId = data.id as string
 
-  // Send signing link to client
   const emailResult = await sendContractEmail(clientEmail, contractId, templateName)
 
-  // Update status to 'sent' if email succeeded
   if (emailResult.success) {
-    await supabaseAdmin
+    await admin
       .from('contracts')
       .update({ status: 'sent' })
       .eq('id', contractId)

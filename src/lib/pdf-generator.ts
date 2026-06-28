@@ -8,12 +8,6 @@ function formatDate(): string {
   });
 }
 
-type ClauseInput = { label: string; value: string };
-
-function clause(text: string): ClauseInput {
-  return { label: '', value: text };
-}
-
 export async function generateContractPdf(data: Record<string, string>, templateName: string) {
   const isNda = templateName.toLowerCase().includes('non-disclosure') || templateName.toLowerCase().includes('nda');
 

@@ -1,9 +1,21 @@
 'use server'
 
-import { supabaseAdmin } from '../lib/supabaseAdmin'
+import { createAdminClient } from '@/utils/supabase/server'
 
 export async function saveSignature(contractId: string, signatureData: string) {
-  const { error } = await supabaseAdmin
+  const admin = createAdminClient()
+
+  const { data: contract } = await admin
+    .from('contracts')
+    .select('status')
+    .eq('id', contractId)
+    .single()
+
+  if (!contract || contract.status !== 'sent') {
+    return { success: false, error: 'Contract is not available for signing' }
+  }
+
+  const { error } = await admin
     .from('signatures')
     .insert([{ contract_id: contractId, signature_data: signatureData }])
 
@@ -12,7 +24,7 @@ export async function saveSignature(contractId: string, signatureData: string) {
     return { success: false }
   }
 
-  await supabaseAdmin
+  await admin
     .from('contracts')
     .update({ status: 'signed' })
     .eq('id', contractId)

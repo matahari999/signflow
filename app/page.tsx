@@ -1,11 +1,11 @@
 import Link from 'next/link'
-import { createSupabaseServerClient } from '@/lib/supabaseServer'
+import { createClient } from '@/utils/supabase/server'
 import UpgradeButton from '@/components/UpgradeButton'
 
 export default async function HomePage() {
   let user = null
   try {
-    const supabase = await createSupabaseServerClient()
+    const supabase = await createClient()
     const { data } = await supabase.auth.getUser()
     user = data.user
   } catch {}
@@ -70,6 +70,7 @@ export default async function HomePage() {
           <Link href="/pricing" className="hover:text-gray-600">Pricing</Link>
           <Link href="/legal/privacy" className="hover:text-gray-600">Privacy</Link>
           <Link href="/legal/terms" className="hover:text-gray-600">Terms</Link>
+          <a href="mailto:sinab7500@gmail.com" className="hover:text-gray-600">Support</a>
         </div>
         <p>&copy; {new Date().getFullYear()} SignFlow. All rights reserved.</p>
       </footer>

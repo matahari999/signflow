@@ -1,14 +1,13 @@
 'use server'
 
-import { supabaseAdmin } from '../lib/supabaseAdmin'
-import { createSupabaseServerClient } from '../lib/supabaseServer'
+import { createClient, createAdminClient } from '@/utils/supabase/server'
 
 export async function deleteContract(contractId: string) {
-  const supabase = await createSupabaseServerClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { success: false, error: 'Not authenticated' }
 
-  const { error } = await supabaseAdmin
+  const { error } = await createAdminClient()
     .from('contracts')
     .delete()
     .eq('id', contractId)

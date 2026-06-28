@@ -1,120 +1,57 @@
-'use client'
+// components/ContractForm.tsx
+'use client';
 
-import { useState } from 'react'
-import { generatePDF } from '../actions/generatePDF'
-import { createContract } from '../actions/createContract'
+import { useState } from 'react';
+import SignatureCanvas from './SignatureCanvas';
 
-interface Props {
-  fields: string[]
-  templateId: string
-  templateName: string
-}
+export default function ContractForm({ template }: { template: any }) {
+  const schema = JSON.parse(template.content);
+  const [formData, setFormData] = useState<any>({});
+  const [signature, setSignature] = useState<string | null>(null);
 
-export default function ContractForm({ fields, templateId, templateName }: Props) {
-  const [loading, setLoading] = useState(false)
-  const [contractId, setContractId] = useState<string | null>(null)
-  const [emailSent, setEmailSent] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    setLoading(true)
-    setError(null)
-
-    const formData = new FormData(e.currentTarget)
-    const clientEmail = formData.get('client_email') as string
-
-    const fieldsData: Record<string, string> = {}
-    fields.forEach((field) => {
-      fieldsData[field] = formData.get(field) as string
-    })
-
-    const result = await createContract(templateId, clientEmail, fieldsData, templateName)
-    if (result.success && result.contractId) {
-      setContractId(result.contractId)
-      setEmailSent(result.emailSent)
-
-      const base64 = await generatePDF(fieldsData, templateName)
-      const link = document.createElement('a')
-      link.href = `data:application/pdf;base64,${base64}`
-      link.download = `${templateName.replace(/\s+/g, '-').toLowerCase()}.pdf`
-      link.click()
-    } else {
-      setError(result.error ?? 'Failed to save contract.')
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!signature) {
+        alert('Please sign the contract first.');
+        return;
     }
+    
+    const response = await fetch('/api/contracts', {
+      method: 'POST',
+      body: JSON.stringify({
+        templateId: template.id,
+        fields: formData,
+        signature: signature
+      }),
+    });
 
-    setLoading(false)
-  }
+    if (response.ok) {
+      alert('Contract created successfully!');
+    } else {
+      alert('Failed to create contract.');
+    }
+  };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Client Email</label>
-        <input
-          name="client_email"
-          type="email"
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          required
-          placeholder="client@example.com"
-        />
-      </div>
-
-      {fields.map((field) => (
-        <div key={field}>
-          <label className="block text-sm font-medium text-gray-700 mb-1 capitalize">
-            {field.replace(/_/g, ' ')}
-          </label>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {schema.fields.map((field: any) => (
+        <div key={field.name}>
+          <label className="block text-sm font-medium">{field.label}</label>
           <input
-            name={field}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
+            type={field.type}
+            className="w-full border p-2 rounded"
+            onChange={(e) => setFormData({ ...formData, [field.name]: e.target.value })}
+            required={field.required}
           />
         </div>
       ))}
-
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700">
-          {error}
-        </div>
-      )}
-
-      {contractId && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4 space-y-2">
-          <p className="text-sm text-green-800 font-semibold">Contract saved!</p>
-          {emailSent ? (
-            <p className="text-sm text-green-700">
-              Signing link sent to client&apos;s email.
-            </p>
-          ) : (
-            <>
-              <p className="text-xs text-green-700">
-                Email could not be sent. Share this link manually:
-              </p>
-              <code className="block text-xs bg-green-100 px-2 py-1 rounded text-green-900 break-all">
-                {typeof window !== 'undefined' ? window.location.origin : ''}/sign/{contractId}
-              </code>
-            </>
-          )}
-        </div>
-      )}
-
-      <div className="flex gap-3 pt-2">
-        <button
-          type="submit"
-          disabled={loading}
-          className="bg-blue-600 text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
-        >
-          {loading ? 'Sending...' : 'Generate PDF & Send to Client'}
-        </button>
-        {contractId && (
-          <a
-            href="/dashboard"
-            className="bg-gray-100 text-gray-700 px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-200 transition"
-          >
-            Go to Dashboard
-          </a>
-        )}
+      <div className="mt-6">
+        <label className="block text-sm font-medium mb-2">Signature</label>
+        <SignatureCanvas onSave={(data) => setSignature(data)} />
       </div>
+      <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded w-full">
+        Create & Sign Contract
+      </button>
     </form>
-  )
+  );
 }
