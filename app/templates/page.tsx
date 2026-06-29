@@ -1,10 +1,22 @@
 import { getTemplates } from '@/actions/templates'
+import { createClient } from '@/utils/supabase/server'
 import Link from 'next/link'
+import TemplateCard from '@/components/TemplateCard'
 
 export const dynamic = 'force-dynamic'
 
 export default async function TemplatesPage() {
   const templates = await getTemplates()
+
+  let userEmail: string | undefined
+  try {
+    const supabase = await createClient()
+    const { data } = await supabase.auth.getUser()
+    userEmail = data.user?.email ?? undefined
+  } catch {}
+
+  const freeCount = templates.filter((t) => !t.pro).length
+  const proCount = templates.filter((t) => t.pro).length
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
@@ -13,7 +25,7 @@ export default async function TemplatesPage() {
           <div>
             <h1 className="text-2xl font-bold">Contract Templates</h1>
             <p className="text-sm text-gray-600 mt-1">
-              Select a template to create your contract.
+              {freeCount} free · <span className="text-yellow-600 font-medium">{proCount} Pro</span>
             </p>
           </div>
           <Link href="/dashboard" className="text-sm text-gray-600 hover:text-black">
@@ -28,19 +40,11 @@ export default async function TemplatesPage() {
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {templates.map((template) => (
-              <div
+              <TemplateCard
                 key={template.id}
-                className="bg-white border rounded-xl p-6 hover:shadow-md transition flex flex-col"
-              >
-                <h2 className="font-semibold text-lg mb-2">{template.name}</h2>
-                <p className="text-sm text-gray-600 flex-1">{template.description}</p>
-                <Link
-                  href={`/templates/${template.id}`}
-                  className="mt-5 block bg-blue-600 text-white px-4 py-2.5 rounded-lg text-sm font-medium text-center hover:bg-blue-700 transition"
-                >
-                  Use Template
-                </Link>
-              </div>
+                template={template}
+                userEmail={userEmail}
+              />
             ))}
           </div>
         )}
