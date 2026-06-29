@@ -4,10 +4,9 @@ import { getContracts } from '@/actions/getContracts'
 import { createClient, createAdminClient } from '@/utils/supabase/server'
 import UpgradeButton from '@/components/UpgradeButton'
 import ContractActions from '@/components/ContractActions'
+import { FREE_TIER_LIMIT } from '@/lib/constants'
 
 export const dynamic = 'force-dynamic'
-
-const FREE_TIER_LIMIT = 3
 
 export default async function DashboardPage() {
   let user = null

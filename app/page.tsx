@@ -1,6 +1,5 @@
 import Link from 'next/link'
 import { createClient } from '@/utils/supabase/server'
-import UpgradeButton from '@/components/UpgradeButton'
 
 export default async function HomePage() {
   let user = null
@@ -17,13 +16,10 @@ export default async function HomePage() {
         <div className="flex gap-4 items-center">
           <Link href="/pricing" className="text-sm text-gray-600 hover:text-black">Pricing</Link>
           {user ? (
-            <>
-              <Link href="/dashboard" className="text-sm text-gray-600 hover:text-black">Dashboard</Link>
-              <UpgradeButton />
-            </>
+            <Link href="/dashboard" className="text-sm text-gray-600 hover:text-black">Dashboard</Link>
           ) : (
             <>
-              <Link href="/login" className="text-sm text-gray-600 hover:text-black">Sign In</Link>
+              <Link href="/login" className="text-sm text-gray-600 hover:text-black">Log In</Link>
               <Link href="/signup" className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition">Get Started</Link>
             </>
           )}
@@ -47,19 +43,31 @@ export default async function HomePage() {
 
       <section className="max-w-4xl mx-auto px-8 pb-24">
         <div className="grid grid-cols-3 gap-8">
-          <div className="text-center p-6 rounded-xl bg-gray-50">
-            <div className="text-4xl mb-3">📝</div>
-            <h3 className="font-semibold mb-2">Pick a Template</h3>
+          <div className="p-6 rounded-xl bg-gray-50">
+            <div className="w-9 h-9 rounded-lg bg-blue-100 flex items-center justify-center mb-4">
+              <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+            <h3 className="font-semibold mb-1.5">Pick a Template</h3>
             <p className="text-sm text-gray-600">Choose from 13 contract templates for any freelance niche.</p>
           </div>
-          <div className="text-center p-6 rounded-xl bg-gray-50">
-            <div className="text-4xl mb-3">✉️</div>
-            <h3 className="font-semibold mb-2">Send to Client</h3>
+          <div className="p-6 rounded-xl bg-gray-50">
+            <div className="w-9 h-9 rounded-lg bg-blue-100 flex items-center justify-center mb-4">
+              <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <h3 className="font-semibold mb-1.5">Send to Client</h3>
             <p className="text-sm text-gray-600">Fill in the details and share a signing link with your client instantly.</p>
           </div>
-          <div className="text-center p-6 rounded-xl bg-gray-50">
-            <div className="text-4xl mb-3">✅</div>
-            <h3 className="font-semibold mb-2">Get Signed</h3>
+          <div className="p-6 rounded-xl bg-gray-50">
+            <div className="w-9 h-9 rounded-lg bg-green-100 flex items-center justify-center mb-4">
+              <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h3 className="font-semibold mb-1.5">Get Signed</h3>
             <p className="text-sm text-gray-600">Clients draw their digital signature. Status updates automatically.</p>
           </div>
         </div>

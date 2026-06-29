@@ -1,6 +1,22 @@
 import Link from 'next/link'
 import { createClient } from '@/utils/supabase/server'
 
+function Check() {
+  return (
+    <svg className="w-4 h-4 shrink-0 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+    </svg>
+  )
+}
+
+function Cross() {
+  return (
+    <svg className="w-4 h-4 shrink-0 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+    </svg>
+  )
+}
+
 export default async function PricingPage() {
   let user = null
   try {
@@ -38,12 +54,12 @@ export default async function PricingPage() {
             <p className="text-4xl font-bold mb-1">$0</p>
             <p className="text-sm text-gray-500 mb-6">forever — no credit card</p>
             <ul className="space-y-3 mb-8 flex-1 text-sm">
-              <li className="flex items-center gap-2">✅ Up to 3 contracts</li>
-              <li className="flex items-center gap-2">✅ 7 basic templates</li>
-              <li className="flex items-center gap-2">✅ Email signing links</li>
-              <li className="flex items-center gap-2">✅ Basic PDF generation</li>
-              <li className="flex items-center gap-2 text-gray-400">❌ Pro templates (6 locked)</li>
-              <li className="flex items-center gap-2 text-gray-400">❌ Unlimited contracts</li>
+              <li className="flex items-center gap-2"><Check /> Up to 3 contracts</li>
+              <li className="flex items-center gap-2"><Check /> 7 basic templates</li>
+              <li className="flex items-center gap-2"><Check /> Email signing links</li>
+              <li className="flex items-center gap-2"><Check /> Basic PDF generation</li>
+              <li className="flex items-center gap-2 text-gray-400"><Cross /> Pro templates (6 locked)</li>
+              <li className="flex items-center gap-2 text-gray-400"><Cross /> Unlimited contracts</li>
             </ul>
             {user ? (
               <span className="block text-center bg-gray-100 text-gray-500 py-2.5 rounded-lg text-sm font-medium cursor-default">
@@ -63,12 +79,12 @@ export default async function PricingPage() {
             <p className="text-4xl font-bold mb-1">$5</p>
             <p className="text-sm text-gray-500 mb-6">per month</p>
             <ul className="space-y-3 mb-8 flex-1 text-sm">
-              <li className="flex items-center gap-2">✅ Unlimited contracts</li>
-              <li className="flex items-center gap-2">✅ All 13 templates</li>
-              <li className="flex items-center gap-2">✅ Email signing links</li>
-              <li className="flex items-center gap-2">✅ Full PDF with legal clauses</li>
-              <li className="flex items-center gap-2">✅ Pro templates (SOW, Contractor, etc.)</li>
-              <li className="flex items-center gap-2">✅ Cancel anytime</li>
+              <li className="flex items-center gap-2"><Check /> Unlimited contracts</li>
+              <li className="flex items-center gap-2"><Check /> All 13 templates</li>
+              <li className="flex items-center gap-2"><Check /> Email signing links</li>
+              <li className="flex items-center gap-2"><Check /> Full PDF with legal clauses</li>
+              <li className="flex items-center gap-2"><Check /> Pro templates (SOW, Contractor, etc.)</li>
+              <li className="flex items-center gap-2"><Check /> Cancel anytime</li>
             </ul>
             <Link
               href={user ? '/api/checkout' : '/signup'}

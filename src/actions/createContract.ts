@@ -2,8 +2,7 @@
 
 import { createClient, createAdminClient } from '@/utils/supabase/server'
 import { sendContractEmail } from './sendEmail'
-
-const FREE_TIER_LIMIT = 3
+import { FREE_TIER_LIMIT } from '@/lib/constants'
 
 export async function createContract(
   templateId: string,

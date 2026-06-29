@@ -1,9 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import SignatureCanvas from './SignatureCanvas'
+import { useRouter } from 'next/navigation'
 import DatePicker from './DatePicker'
 import AdvancedAccordion from './AdvancedAccordion'
+import { createContract } from '@/actions/createContract'
 
 type Field = {
   name: string
@@ -18,6 +19,12 @@ type Field = {
 type Schema = {
   fields: Field[]
   pro?: boolean
+}
+
+type Template = {
+  id: string
+  name: string
+  content: string | Record<string, unknown>
 }
 
 function FieldInput({
@@ -68,11 +75,11 @@ function FieldInput({
   )
 }
 
-export default function ContractForm({ template }: { template: any }) {
+export default function ContractForm({ template }: { template: Template }) {
+  const router = useRouter()
   const raw = template.content
-  const schema: Schema = typeof raw === 'string' ? JSON.parse(raw) : raw
+  const schema: Schema = typeof raw === 'string' ? JSON.parse(raw) : raw as Schema
 
-  // Seed formData with defaultValues from advanced fields
   const defaults = Object.fromEntries(
     schema.fields
       .filter((f) => f.defaultValue !== undefined && f.defaultValue !== '')
@@ -80,7 +87,9 @@ export default function ContractForm({ template }: { template: any }) {
   )
 
   const [formData, setFormData] = useState<Record<string, string>>(defaults)
-  const [signature, setSignature] = useState<string | null>(null)
+  const [clientEmail, setClientEmail] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const [pending, setPending] = useState(false)
 
   const handleChange = (name: string, value: string) =>
     setFormData((prev) => ({ ...prev, [name]: value }))
@@ -90,28 +99,39 @@ export default function ContractForm({ template }: { template: any }) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!signature) {
-      alert('Please sign the contract first.')
+    setError(null)
+    if (!clientEmail) {
+      setError('Client email is required.')
       return
     }
-    const response = await fetch('/api/contracts', {
-      method: 'POST',
-      body: JSON.stringify({
-        templateId: template.id,
-        fields: formData,
-        signature,
-      }),
-    })
-    if (response.ok) {
-      alert('Contract created successfully!')
+    setPending(true)
+    const result = await createContract(template.id, clientEmail, formData, template.name)
+    setPending(false)
+    if (result.success) {
+      router.push('/dashboard')
     } else {
-      alert('Failed to create contract.')
+      setError(result.error ?? 'Failed to create contract. Please try again.')
     }
   }
 
+  const inputClass = 'w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {/* Core fields — always visible */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Client Email <span className="text-red-500">*</span>
+        </label>
+        <input
+          type="email"
+          required
+          className={inputClass}
+          placeholder="client@example.com"
+          value={clientEmail}
+          onChange={(e) => setClientEmail(e.target.value)}
+        />
+      </div>
+
       {coreFields.map((field) => (
         <FieldInput
           key={field.name}
@@ -121,26 +141,24 @@ export default function ContractForm({ template }: { template: any }) {
         />
       ))}
 
-      {/* Advanced options — accordion */}
       <AdvancedAccordion
         fields={advancedFields}
         formData={formData}
         onChange={handleChange}
       />
 
-      {/* Signature */}
-      <div className="mt-2">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Signature <span className="text-red-500">*</span>
-        </label>
-        <SignatureCanvas onSave={(data) => setSignature(data)} />
-      </div>
+      {error && (
+        <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+          {error}
+        </p>
+      )}
 
       <button
         type="submit"
-        className="w-full bg-blue-600 text-white px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-blue-700 transition"
+        disabled={pending}
+        className="w-full bg-blue-600 text-white px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-blue-700 transition disabled:opacity-50"
       >
-        Create &amp; Sign Contract
+        {pending ? 'Creating…' : 'Create & Send Contract'}
       </button>
     </form>
   )
